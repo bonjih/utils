@@ -26,13 +26,16 @@ def slice_videos(directory):
                 current_hour = start_time.hour
                 segment_index = 1
 
+                total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                total_duration = total_frames / frame_rate  # in seconds
+
                 while True:
                     # Calculate the start and end times for the 5-minute segment
                     frame_time = start_time + timedelta(hours=current_hour - start_time.hour)
                     end_time = frame_time + timedelta(minutes=5)
 
-                    # Check if end time exceeds video duration
-                    if end_time > start_time + timedelta(seconds=cap.get(cv2.CAP_PROP_FRAME_COUNT) / frame_rate):
+                    # Check if end time exceeds total duration
+                    if end_time > start_time + timedelta(seconds=total_duration):
                         break
 
                     # Convert start and end time to string
