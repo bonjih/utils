@@ -13,8 +13,13 @@ def slice_videos(directory):
             file_path = os.path.join(directory, filename)
             cap = cv2.VideoCapture(file_path)
             frame_rate = cap.get(cv2.CAP_PROP_FPS)
-            start_time_str = filename.split("_")[-2]  # Extract time from filename
-            start_time = datetime.strptime(start_time_str, '%Y-%m-%d_%H-%M-%S')
+            # Use regex to extract the time part from the filename
+            match = re.search(r'(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})', filename)
+            if match:
+                start_time_str = match.group(0)
+                start_time = datetime.strptime(start_time_str, '%Y-%m-%d_%H-%M-%S')
+               
+        
 
             # Align start time to the nearest hour
             start_time = start_time.replace(minute=0, second=0, microsecond=0)
