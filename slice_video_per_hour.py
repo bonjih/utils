@@ -9,11 +9,11 @@ videos
     - Footage
     - IncidentDB
 
+
 import os
 import cv2
 from datetime import datetime, timedelta
 import re
-from shutil import copytree, rmtree
 
 
 def create_output_filename(filename, start_time_str):
@@ -22,11 +22,8 @@ def create_output_filename(filename, start_time_str):
     prefix = '_'.join(filename_parts[:-1])  # Exclude the extension
     extension = filename_parts[-1]
 
-    # Extract the time part from the start time string
-    time_part = start_time_str.split('_')[-1]
-
     # Construct the output filename
-    output_filename = f"{prefix}_{time_part}.{extension}"
+    output_filename = f"{prefix}_{start_time_str}.{extension}"
     return output_filename
 
 
@@ -57,13 +54,13 @@ def slice_video(video_path, output_directory):
             if end_time > start_time + timedelta(seconds=total_duration):
                 break
 
+            # Create output directory based on start time
+            output_dirname = os.path.join(output_directory, start_time_str)
+            os.makedirs(output_dirname, exist_ok=True)
+
             # Create output filename
             output_filename = create_output_filename(os.path.basename(video_path),
                                                      frame_time.strftime('%Y-%m-%d_%H-%M-%S'))
-
-            # Create output directory based on output filename
-            output_dirname = os.path.join(output_directory, os.path.splitext(output_filename)[0])
-            os.makedirs(output_dirname, exist_ok=True)
 
             output_filepath = os.path.join(output_dirname, output_filename)
 
@@ -88,22 +85,21 @@ def slice_video(video_path, output_directory):
 
 
 def slice_videos(directory):
+    # Create output directory if it doesn't exist
+    output_directory = os.path.join(directory, "videos-out")
+    os.makedirs(output_directory, exist_ok=True)
+
     # Iterate through subdirectories in the given directory
     for root, dirs, files in os.walk(directory):
         for dir_name in dirs:
             if dir_name == "Footage":
                 footage_dir = os.path.join(root, dir_name)
-                output_dir = os.path.join(root, "videos-out")
-                os.makedirs(output_dir, exist_ok=True)
                 for filename in os.listdir(footage_dir):
                     if filename.endswith((".mp4", ".mkv", ".avi")):
                         video_path = os.path.join(footage_dir, filename)
-                        slice_video(video_path, output_dir)
+                        slice_video(video_path, output_directory)
 
 
 videos_directory = "videos"
 slice_videos(videos_directory)
-
-
-videos_directory = "videos"
-slice_videos(videos_directory)
+ 
