@@ -4,6 +4,11 @@ from datetime import datetime, timedelta
 import re
 
 
+videos
+  - SCTASK2150645
+    - Footage
+    - IncidentDB
+
 def create_output_filename(filename, start_time_str):
     # Extract the relevant parts from the filename
     filename_parts = filename.split('.')
