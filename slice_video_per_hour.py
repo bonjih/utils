@@ -20,6 +20,11 @@ def create_output_filename(filename, start_time_str):
 
     # Construct the output filename
     output_filename = f"{prefix}_{time_part}.{extension}"
+    output_filename_1 = output_filename.split('_')[0:3]
+    output_filename_2 = output_filename.split('_')[4:5]
+    result = output_filename_1 + output_filename_2
+    output_filename = "_".join(result)
+
     return output_filename
 
 
@@ -51,7 +56,9 @@ def slice_video(video_path, output_directory):
                 break
 
             # Create output filename
-            output_filename = create_output_filename(os.path.basename(video_path), frame_time.strftime('%Y-%m-%d_%H-%M-%S'))
+            output_filename = create_output_filename(os.path.basename(video_path),
+                                                     frame_time.strftime('%Y-%m-%d_%H-%M-%S'))
+
             output_filepath = os.path.join(output_directory, output_filename)
 
             # Write 5-minute segment to a new video file
@@ -85,5 +92,7 @@ def slice_videos(directory):
             slice_video(video_path, output_directory)
 
 
+videos_directory = "videos"
+slice_videos(videos_directory)
 videos_directory = "videos"
 slice_videos(videos_directory)
