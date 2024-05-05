@@ -94,5 +94,3 @@ def slice_videos(directory):
 
 videos_directory = "videos"
 slice_videos(videos_directory)
-videos_directory = "videos"
-slice_videos(videos_directory)
