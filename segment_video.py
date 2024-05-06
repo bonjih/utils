@@ -4,8 +4,9 @@ import datetime
 def extract_segment(input_file, output_file, start_time, end_time):
     cap = cv2.VideoCapture(input_file)
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    start_frame = int(start_time.total_seconds() * fps)
-    end_frame = int(end_time.total_seconds() * fps)
+    
+    start_frame = int(start_time.timestamp() * fps)
+    end_frame = int(end_time.timestamp() * fps)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
@@ -31,13 +32,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-Traceback (most recent call last):
-  File "C:/Users/hamibenb/PycharmProjects/utils/segment_video.py", line 35, in <module>
-    main()
-  File "C:/Users/hamibenb/PycharmProjects/utils/segment_video.py", line 31, in main
-    extract_segment(input_file, output_file, start_time, end_time)
-  File "C:/Users/hamibenb/PycharmProjects/utils/segment_video.py", line 7, in extract_segment
-    start_frame = int(start_time.total_seconds() * fps)
-AttributeError: 'datetime.datetime' object has no attribute 'total_seconds'
+ 
