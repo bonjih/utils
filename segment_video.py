@@ -1,12 +1,17 @@
-import time
-
 import cv2
 import datetime
 
-
 def extract_segment(input_file, output_file, start_sec, end_sec):
     cap = cv2.VideoCapture(input_file)
+    if not cap.isOpened():
+        print("Error: Could not open video file.")
+        return
+
     fps = int(cap.get(cv2.CAP_PROP_FPS))
+    if fps == 0:
+        print("Error: FPS value is not available.")
+        cap.release()
+        return
 
     start_frame = int(start_sec * fps)
     end_frame = int(end_sec * fps)
@@ -26,7 +31,7 @@ def extract_segment(input_file, output_file, start_sec, end_sec):
 
 
 def main():
-    input_file = "videos_to_split/ PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-05_00-00-00(2).mp4"
+    input_file = "videos_to_split/PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-05_00-00-00(2).mp4"
     output_file = "videos_to_split/output_video_segment.mp4"
 
     t0 = time.strptime('00:45:00,000'.split(',')[0], '%H:%M:%S')
@@ -34,7 +39,7 @@ def main():
 
     t1 = time.strptime('00:55:00,000'.split(',')[0], '%H:%M:%S')
     end_sec = datetime.timedelta(hours=t1.tm_hour, minutes=t1.tm_min, seconds=t1.tm_sec).total_seconds()
-     
+
     extract_segment(input_file, output_file, start_sec, end_sec)
 
 
