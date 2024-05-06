@@ -1,12 +1,15 @@
+import time
+
 import cv2
 import datetime
 
-def extract_segment(input_file, output_file, start_time, end_time):
+
+def extract_segment(input_file, output_file, start_sec, end_sec):
     cap = cv2.VideoCapture(input_file)
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    
-    start_frame = int(start_time.timestamp() * fps)
-    end_frame = int(end_time.timestamp() * fps)
+
+    start_frame = int(start_sec * fps)
+    end_frame = int(end_sec * fps)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
@@ -21,15 +24,19 @@ def extract_segment(input_file, output_file, start_time, end_time):
     cap.release()
     out.release()
 
+
 def main():
-    input_file = "TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-02_16-00-00.mp4"
-    output_file = "output_video_segment.mp4"
+    input_file = "videos_to_split/ PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-05_00-00-00(2).mp4"
+    output_file = "videos_to_split/output_video_segment.mp4"
 
-    start_time = datetime.datetime.strptime("16:45:00", "%H:%M:%S")  # Start time of the segment
-    end_time = datetime.datetime.strptime("16:55:00", "%H:%M:%S")    # End time of the segment
+    t0 = time.strptime('00:45:00,000'.split(',')[0], '%H:%M:%S')
+    start_sec = datetime.timedelta(hours=t0.tm_hour, minutes=t0.tm_min, seconds=t0.tm_sec).total_seconds()
 
-    extract_segment(input_file, output_file, start_time, end_time)
+    t1 = time.strptime('00:55:00,000'.split(',')[0], '%H:%M:%S')
+    end_sec = datetime.timedelta(hours=t1.tm_hour, minutes=t1.tm_min, seconds=t1.tm_sec).total_seconds()
+     
+    extract_segment(input_file, output_file, start_sec, end_sec)
+
 
 if __name__ == "__main__":
     main()
- 
