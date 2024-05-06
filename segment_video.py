@@ -31,3 +31,13 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+Traceback (most recent call last):
+  File "C:/Users/hamibenb/PycharmProjects/utils/segment_video.py", line 35, in <module>
+    main()
+  File "C:/Users/hamibenb/PycharmProjects/utils/segment_video.py", line 31, in main
+    extract_segment(input_file, output_file, start_time, end_time)
+  File "C:/Users/hamibenb/PycharmProjects/utils/segment_video.py", line 7, in extract_segment
+    start_frame = int(start_time.total_seconds() * fps)
+AttributeError: 'datetime.datetime' object has no attribute 'total_seconds'
