@@ -27,3 +27,17 @@ for split, size in zip(splits, split_sizes):
     start += size
 
 print(df)
+
+# Generate initial DataFrame
+df = pd.DataFrame({'item ID': range(1, 25), 'split': [''] * 24})
+
+# Define splits
+splits = ['train'] * 14 + ['test'] * 5 + ['val'] * 5
+
+# Shuffle splits
+np.random.shuffle(splits)
+
+# Assign splits to DataFrame
+df['split'] = splits
+
+print(df)
