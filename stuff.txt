@@ -11,3 +11,48 @@
  'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000010.jpg',
  'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000011.jpg',
  'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000012.jpg'
+
+
+
+
+def plot_file_date_distribution(file_list):
+    # Dictionary to store binned datetimes for each unique group
+    binned_dates = defaultdict(list)
+
+    # Regular expression pattern to extract the unique group
+    pattern = r'(TV.+Bin)'
+
+    # Iterate through each file name
+    for file_name in file_list:
+        # Extract unique group using regex
+        match = re.search(pattern, file_name)
+        if match:
+            group_name = match.group(1)
+
+            # Extract datetime from file name
+            datetime_str = re.search(r'(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})', file_name).group(1)
+            file_datetime = datetime.strptime(datetime_str, '%Y-%m-%d_%H-%M-%S')
+
+            # Bin the datetime into groups of 10 minutes
+            bin_index = int((file_datetime.minute) / 10)
+            bin_datetime = file_datetime.replace(minute=bin_index*10, second=0)
+
+            # Add binned datetime to the corresponding group
+            binned_dates[group_name].append(bin_datetime)
+
+    # Plot distribution for each unique group
+    for group_name, dates in binned_dates.items():
+        plt.hist(dates, bins=range(0, 1441, 10), alpha=0.5, label=group_name)
+
+    plt.xlabel('Time')
+    plt.ylabel('Frequency')
+    plt.title('File Date Distribution')
+    plt.legend()
+    plt.show()
+
+# Example usage
+file_list = [
+    'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000000.jpg',
+    # Add more file names here
+]
+plot_file_date_distribution(file_list)
