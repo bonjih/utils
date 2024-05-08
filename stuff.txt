@@ -1,48 +1,36 @@
-['TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000000.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000001.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000002.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000003.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000004.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000005.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000006.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000007.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000008.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000009.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000010.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000011.jpg',
- 'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000012.jpg'
-
-
-
+import pandas as pd
+import re
+import matplotlib.pyplot as plt
 
 def plot_file_date_distribution(file_list):
-    # Dictionary to store binned datetimes for each unique group
-    binned_dates = defaultdict(list)
+    # Create an empty DataFrame to store parsed data
+    df = pd.DataFrame(columns=['File_Name', 'Group_Name', 'Datetime'])
 
-    # Regular expression pattern to extract the unique group
-    pattern = r'(TV.+Bin)'
+    # Regular expression pattern to extract datetime and group name
+    pattern = r'(TV.+Bin)_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})'
 
     # Iterate through each file name
     for file_name in file_list:
-        # Extract unique group using regex
+        # Extract group name and datetime using regex
         match = re.search(pattern, file_name)
         if match:
             group_name = match.group(1)
+            datetime_str = match.group(2)
 
-            # Extract datetime from file name
-            datetime_str = re.search(r'(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})', file_name).group(1)
-            file_datetime = datetime.strptime(datetime_str, '%Y-%m-%d_%H-%M-%S')
+            # Append data to DataFrame
+            df = df.append({'File_Name': file_name, 'Group_Name': group_name, 'Datetime': datetime_str}, ignore_index=True)
 
-            # Bin the datetime into groups of 10 minutes
-            bin_index = int((file_datetime.minute) / 10)
-            bin_datetime = file_datetime.replace(minute=bin_index*10, second=0)
+    # Convert 'Datetime' column to datetime format
+    df['Datetime'] = pd.to_datetime(df['Datetime'], format='%Y-%m-%d_%H-%M-%S')
 
-            # Add binned datetime to the corresponding group
-            binned_dates[group_name].append(bin_datetime)
+    # Bin the datetimes into groups of 10 minutes
+    df['Binned_Datetime'] = df['Datetime'].dt.floor('10min')
 
     # Plot distribution for each unique group
-    for group_name, dates in binned_dates.items():
-        plt.hist(dates, bins=range(0, 1441, 10), alpha=0.5, label=group_name)
+    unique_groups = df['Group_Name'].unique()
+    for group_name in unique_groups:
+        group_df = df[df['Group_Name'] == group_name]
+        plt.hist(group_df['Binned_Datetime'], bins=pd.date_range(start=group_df['Binned_Datetime'].min(), end=group_df['Binned_Datetime'].max(), freq='10min'), alpha=0.5, label=group_name)
 
     plt.xlabel('Time')
     plt.ylabel('Frequency')
