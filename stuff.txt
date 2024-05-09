@@ -1,22 +1,35 @@
+import boto3
+from boto3.dynamodb.conditions import Key
+from concurrent.futures import ThreadPoolExecutor
+
+# Initialize DynamoDB client
+dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(dy_table_name)
 
-items = []
-
-for video in matching_ids_list:
+# Define function to query DynamoDB for a single video
+def query_video(video_id):
     response = table.query(
-        KeyConditionExpression=Key('video_id').eq(video),
+        KeyConditionExpression=Key('video_id').eq(video_id)
     )
+    return response['Items']
 
-    items.extend(response['Items'])
+# Define function to handle batch processing
+def process_batch(video_ids):
+    items = []
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(query_video, video_id) for video_id in video_ids]
+        for future in futures:
+            items.extend(future.result())
+    return items
 
-    # Include this for large queries
-    while 'LastEvaluatedKey' in response:
-        response = table.query(
-            KeyConditionExpression=Key('video_id').eq(video),
-            ExclusiveStartKey=response['LastEvaluatedKey']
-        )
+# Chunk the matching_ids_list into smaller batches
+batch_size = 10
+batches = [matching_ids_list[i:i + batch_size] for i in range(0, len(matching_ids_list), batch_size)]
 
-        items.extend(response['Items'])
+# Process batches in parallel
+items = []
+for batch in batches:
+    items.extend(process_batch(batch))
 
 
 
