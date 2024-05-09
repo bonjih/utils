@@ -2,7 +2,7 @@
 None
 TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-02_14-00-00(2)_0000000.jpg
 <re.Match object; span=(76, 95), match='2024-05-02_14-00-00'>
-pattern = r'(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})'
+pattern = r'(TV.+ Bin)[-_](\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})'
 
 import pandas as pd
 import re
