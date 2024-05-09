@@ -5,29 +5,32 @@ import matplotlib.pyplot as plt
 def plot_file_date_distribution(file_list):
     # Create an empty DataFrame to store parsed data
     df = pd.DataFrame(columns=['File_Name', 'Group_Name', 'Datetime'])
-
+    
     # Regular expression pattern to extract datetime and group name
     pattern = r'(TV.+Bin)_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})'
-
+    
     # Iterate through each file name
     for file_name in file_list:
+        print(file_name)
         # Extract group name and datetime using regex
         match = re.search(pattern, file_name)
+        print(match)
         if match:
             group_name = match.group(1)
             datetime_str = match.group(2)
-
+            print(group_name)
             # Append data to DataFrame
             df = df.append({'File_Name': file_name, 'Group_Name': group_name, 'Datetime': datetime_str}, ignore_index=True)
-
+            
     # Convert 'Datetime' column to datetime format
     df['Datetime'] = pd.to_datetime(df['Datetime'], format='%Y-%m-%d_%H-%M-%S')
-
+     
     # Bin the datetimes into groups of 10 minutes
     df['Binned_Datetime'] = df['Datetime'].dt.floor('10min')
-
+ 
     # Plot distribution for each unique group
     unique_groups = df['Group_Name'].unique()
+   
     for group_name in unique_groups:
         group_df = df[df['Group_Name'] == group_name]
         plt.hist(group_df['Binned_Datetime'], bins=pd.date_range(start=group_df['Binned_Datetime'].min(), end=group_df['Binned_Datetime'].max(), freq='10min'), alpha=0.5, label=group_name)
@@ -35,15 +38,47 @@ def plot_file_date_distribution(file_list):
     plt.xlabel('Time')
     plt.ylabel('Frequency')
     plt.title('File Date Distribution')
-    plt.legend()
+    #plt.legend()
     plt.show()
+ 
+plot_file_date_distribution(images)
 
-# Example usage
-file_list = [
-    'TV404C PC2 ROM Bin North West_urn-uuid-00075fbe-4138-3841-be5f-0700075fbe5f_2024-05-04_23-41-50(1)_0000000.jpg',
-    # Add more file names here
-]
-plot_file_date_distribution(file_list)
+
+
+
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000000.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000001.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000002.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000003.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000004.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000005.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000006.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000007.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000008.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000009.jpg
+None
+(10.114.237.108) - TV401C PC1 ROM Bin-2024.04.12-15.00.00-15m00s_0000010.jpg
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
