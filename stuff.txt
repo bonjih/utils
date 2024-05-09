@@ -2,23 +2,34 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from concurrent.futures import ThreadPoolExecutor
 
-# Initialize DynamoDB client
-dynamodb = boto3.resource('dynamodb')
+ 
 table = dynamodb.Table(dy_table_name)
+ 
 
-def query_video(video_id):
-    response = table.query(
-        KeyConditionExpression=Key('video_id').eq(video_id)
-    )
-    return response['Items']
+# Define function to query DynamoDB for a single video
+def query_video(video_id, exclusive_start_key=None):
+    if exclusive_start_key:
+        response = table.query(
+            KeyConditionExpression=Key('video_id').eq(video_id),
+            ExclusiveStartKey=exclusive_start_key
+        )
+    else:
+        response = table.query(
+            KeyConditionExpression=Key('video_id').eq(video_id)
+        )
+    return response['Items'], response.get('LastEvaluatedKey')
 
-# Define function to handle batch processing
+# Define function to handle batch processing with pagination
 def process_batch(video_ids):
     items = []
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(query_video, video_id) for video_id in video_ids]
-        for future in futures:
-            items.extend(future.result())
+        for video_id in video_ids:
+            last_evaluated_key = None
+            while True:
+                result, last_evaluated_key = query_video(video_id, last_evaluated_key)
+                items.extend(result)
+                if not last_evaluated_key:
+                    break
     return items
 
 # Convert set to list
@@ -32,7 +43,6 @@ batches = [matching_ids_list[i:i + batch_size] for i in range(0, len(matching_id
 items = []
 for batch in batches:
     items.extend(process_batch(batch))
-
 
 
 
