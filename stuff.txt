@@ -62,15 +62,12 @@ prefix_frames22 = []
 bucket_name = parsed_uri.netloc
 prefix = parsed_uri.path.lstrip('/')
 
-# List objects in the specified S3 bucket with the given prefix and delimiter
-response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix, Delimiter='/')
+# Paginate through the results to retrieve all objects
+paginator = s3.get_paginator('list_objects_v2')
+pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
 
-object_keys = [obj['Key'] for obj in response.get('Contents', [])]
-prefix_frames22.extend(object_keys)
-
-# If there are common prefixes, list objects in those prefixes separately
-common_prefixes = response.get('CommonPrefixes', [])
-for common_prefix in common_prefixes:
-    prefix_frames22.extend(list_objects_in_prefix(bucket_name, common_prefix['Prefix']))
+for page in pages:
+    object_keys = [obj['Key'] for obj in page.get('Contents', [])]
+    prefix_frames22.extend(object_keys)
 
 print(len(prefix_frames22))
