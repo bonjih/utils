@@ -1,3 +1,41 @@
+item_id	last_processed_frame	video_id	frame_id	frame_ts	ts_added	resolution	camera_name	file_url	roi	dusty	split_name	dataset_name	bridged	gtplus_labels	gtplus_project	dataset	google_vit_base_patch16_224
+0	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	3761	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	0	1714662000000	2024-05-06T03:06:33.354321	[1280, 720]	TV404C PC2 ROM Bin North West	s3://dev-iroccvdmsstack-dmsbucketb119a736-rtlx...	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN
+1	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	NaN	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	1	1714662000080	2024-05-06T03:06:33.510532	[1280, 720]	TV404C PC2 ROM Bin North West	s3://dev-iroccvdmsstack-dmsbucketb119a736-rtlx...	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN
+2	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	NaN	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	2	1714662000160	2024-05-06T03:06:33.617960	[1280, 720]	TV404C PC2 ROM Bin North West	s3://dev-iroccvdmsstack-dmsbucketb119a736-rtlx...	NaN	NaN	NaN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import asyncio
 import aioboto3
 from boto3.dynamodb.conditions import Key
