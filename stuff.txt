@@ -1,6 +1,7 @@
 import re
 
-pattern = re.compile(r'(TV[^_]+ Bin)[-_]([^_]+)_[^_]+\.jpg')
+pattern = re.compile(r'(TV.+? Bin)[-_]([0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2})')
+
 
 def extract_info(file_name):
     match = pattern.search(file_name)
