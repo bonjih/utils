@@ -7,7 +7,7 @@ def plot_file_date_distribution(file_list):
     df = pd.DataFrame(columns=['File_Name', 'Group_Name', 'Datetime'])
     
     # Regular expression pattern to extract datetime and group name
-    pattern = r' - (TV.+ Bin) - (\d{4}\.\d{2}\.\d{2}-\d{2}\.\d{2}\.\d{2})_'
+    pattern = r'(TV.+ Bin)[-_](\d{4}\.\d{2}\.\d{2}-\d{2}\.\d{2}\.\d{2})_'
     
     # Iterate through each file name
     for file_name in file_list:
