@@ -1,48 +1,54 @@
-import boto3
+iimport asyncio
+import aioboto3
 from boto3.dynamodb.conditions import Key
-from concurrent.futures import ThreadPoolExecutor
 
- 
-table = dynamodb.Table(dy_table_name)
- 
-
-# Define function to query DynamoDB for a single video
-def query_video(video_id, exclusive_start_key=None):
+async def query_video(table, video_id, exclusive_start_key=None):
     if exclusive_start_key:
-        response = table.query(
+        response = await table.query(
             KeyConditionExpression=Key('video_id').eq(video_id),
             ExclusiveStartKey=exclusive_start_key
         )
     else:
-        response = table.query(
+        response = await table.query(
             KeyConditionExpression=Key('video_id').eq(video_id)
         )
     return response['Items'], response.get('LastEvaluatedKey')
 
-# Define function to handle batch processing with pagination
-def process_batch(video_ids):
+async def process_batch(table, video_ids):
     items = []
-    with ThreadPoolExecutor() as executor:
+    async with aioboto3.resource('dynamodb') as dynamodb:
         for video_id in video_ids:
             last_evaluated_key = None
             while True:
-                result, last_evaluated_key = query_video(video_id, last_evaluated_key)
+                result, last_evaluated_key = await query_video(dynamodb.Table(table), video_id, last_evaluated_key)
                 items.extend(result)
                 if not last_evaluated_key:
                     break
     return items
 
-# Convert set to list
-matching_ids_list = list(matching_ids_list)
+async def main():
+    # Convert set to list
+    matching_ids_list = list(matching_ids_list)
 
-# Chunk the matching_ids_list into smaller batches
-batch_size = 10
-batches = [matching_ids_list[i:i + batch_size] for i in range(0, len(matching_ids_list), batch_size)]
+    # Chunk the matching_ids_list into smaller batches
+    batch_size = 10
+    batches = [matching_ids_list[i:i + batch_size] for i in range(0, len(matching_ids_list), batch_size)]
 
-# Process batches in parallel
-items = []
-for batch in batches:
-    items.extend(process_batch(batch))
+    # Process batches in parallel
+    items = []
+    async with aioboto3.resource('dynamodb') as dynamodb:
+        tasks = [process_batch(dynamodb.Table(dy_table_name), batch) for batch in batches]
+        results = await asyncio.gather(*tasks)
+        for result in results:
+            items.extend(result)
+    
+    return items
+
+# Run the asyncio event loop
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    items = loop.run_until_complete(main())
+
 
 
 
