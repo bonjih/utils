@@ -1,3 +1,32 @@
+table = dynamodb.Table(dy_table_name)
+
+items = []
+
+for video in matching_ids_list:
+    response = table.query(
+        KeyConditionExpression=Key('video_id').eq(video),
+    )
+
+    items.extend(response['Items'])
+
+    # Include this for large queries
+    while 'LastEvaluatedKey' in response:
+        response = table.query(
+            KeyConditionExpression=Key('video_id').eq(video),
+            ExclusiveStartKey=response['LastEvaluatedKey']
+        )
+
+        items.extend(response['Items'])
+
+
+
+
+
+
+
+
+
+
 import re
 
 pattern = re.compile(r'(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})')
