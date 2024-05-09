@@ -74,4 +74,3 @@ for common_prefix in common_prefixes:
     prefix_frames22.extend(list_objects_in_prefix(bucket_name, common_prefix['Prefix']))
 
 print(len(prefix_frames22))
-
