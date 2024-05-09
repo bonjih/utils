@@ -6,7 +6,6 @@ from concurrent.futures import ThreadPoolExecutor
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(dy_table_name)
 
-# Define function to query DynamoDB for a single video
 def query_video(video_id):
     response = table.query(
         KeyConditionExpression=Key('video_id').eq(video_id)
@@ -21,6 +20,9 @@ def process_batch(video_ids):
         for future in futures:
             items.extend(future.result())
     return items
+
+# Convert set to list
+matching_ids_list = list(matching_ids_list)
 
 # Chunk the matching_ids_list into smaller batches
 batch_size = 10
