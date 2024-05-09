@@ -47,6 +47,12 @@ plot_file_date_distribution(file_list)
 
 
 
+import boto3
+from urllib.parse import urlparse
+
+# Assuming you have already initialized your S3 client
+s3 = boto3.client('s3')
+
 uri = 's3://dev-iroccvdmsstack-dmsbucketb119a736-rtlxxvez6thx/frames/TV401C PC1 ROM Bin_urn-uuid-00075fbe-43fb-fb43-be5f-0700075fbe5f_2024-05-02_08-00-00(3)/'
 parsed_uri = urlparse(uri)
 
@@ -55,13 +61,14 @@ prefix_frames22 = []
 # Extract bucket name and object key prefix from the parsed URI
 bucket_name = parsed_uri.netloc
 prefix = parsed_uri.path.lstrip('/')
-    
-# List objects in the specified S3 bucket with the given prefix
-response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
 
-object_keys = [obj['Key'] for obj in response.get('Contents', [])]
-        
-for i in object_keys:
-    prefix_frames22.append(i)
-    
+# Paginate through the results to retrieve all objects
+paginator = s3.get_paginator('list_objects_v2')
+pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+
+for page in pages:
+    object_keys = [obj['Key'] for obj in page.get('Contents', [])]
+    prefix_frames22.extend(object_keys)
+
 print(len(prefix_frames22))
+
