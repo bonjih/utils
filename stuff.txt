@@ -1,4 +1,4 @@
-iimport asyncio
+import asyncio
 import aioboto3
 from boto3.dynamodb.conditions import Key
 
@@ -46,37 +46,8 @@ async def main():
 
 # Run the asyncio event loop
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    items = loop.run_until_complete(main())
+    items = asyncio.run(main())
 
-
-
-RuntimeError                              Traceback (most recent call last)
-Cell In[86], line 2
-      1 loop = asyncio.get_event_loop()
-----> 2 items = loop.run_until_complete(main())
-
-File /usr/local/lib/python3.10/asyncio/base_events.py:625, in BaseEventLoop.run_until_complete(self, future)
-    614 """Run until the Future is done.
-    615 
-    616 If the argument is a coroutine, it is wrapped in a Task.
-   (...)
-    622 Return the Future's result, or raise its exception.
-    623 """
-    624 self._check_closed()
---> 625 self._check_running()
-    627 new_task = not futures.isfuture(future)
-    628 future = tasks.ensure_future(future, loop=self)
-
-File /usr/local/lib/python3.10/asyncio/base_events.py:584, in BaseEventLoop._check_running(self)
-    582 def _check_running(self):
-    583     if self.is_running():
---> 584         raise RuntimeError('This event loop is already running')
-    585     if events._get_running_loop() is not None:
-    586         raise RuntimeError(
-    587             'Cannot run the event loop while another loop is running')
-
-RuntimeError: This event loop is already running
 
 
 
