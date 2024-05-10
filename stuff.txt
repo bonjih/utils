@@ -1,8 +1,73 @@
-item_id	last_processed_frame	video_id	frame_id	frame_ts	ts_added	resolution	camera_name	file_url	roi	dusty	split_name	dataset_name	bridged	gtplus_labels	gtplus_project	dataset	google_vit_base_patch16_224
-0	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	3761	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	0	1714662000000	2024-05-06T03:06:33.354321	[1280, 720]	TV404C PC2 ROM Bin North West	s3://dev-iroccvdmsstack-dmsbucketb119a736-rtlx...	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN
-1	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	NaN	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	1	1714662000080	2024-05-06T03:06:33.510532	[1280, 720]	TV404C PC2 ROM Bin North West	s3://dev-iroccvdmsstack-dmsbucketb119a736-rtlx...	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN	NaN
-2	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	NaN	TV404C PC2 ROM Bin North West_urn-uuid-00075fb...	2	1714662000160	2024-05-06T03:06:33.617960	[1280, 720]	TV404C PC2 ROM Bin North West	s3://dev-iroccvdmsstack-dmsbucketb119a736-rtlx...	NaN	NaN	NaN
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+import plotly.express as px
 
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the data
+data = pd.read_csv('df2.csv', usecols=['video_id', 'frame_ts'])
+#data = data[0:500000]
+
+# Convert epoch timestamp to datetime
+data['frame_ts'] = pd.to_datetime(data['frame_ts'], unit='ms')
+
+video_id_numbers = {vid: i+1 for i, vid in enumerate(data['video_id'].unique())}
+
+# Replace video_id with corresponding numbers
+data['video_id_number'] = data['video_id'].map(video_id_numbers)
+
+# Group data into specified minute intervals
+mins = 10
+data['min_group'] = data['frame_ts'].dt.floor(f'{mins}min')
+
+# Plot
+plt.figure(figsize=(15, 8))
+ax = sns.histplot(data=data, x='min_group', hue='video_id_number', bins='auto', kde=False, palette='tab10')
+plt.xlabel(f'Frame Timestamp ({mins}-minute intervals)')
+plt.ylabel('Frequency')
+plt.title('Distribution of frame timestamps for each Video ID')
+
+legend_labels = [f'{num} ' for video_id, num in video_id_numbers.items()]
+
+plt.legend(title='Video ID', labels=legend_labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=15)
+#plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+plt.savefig('frame_distribution_plot.png')
+plt.close()
+
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Read the CSV file
+data = pd.read_csv('df2.csv', usecols=['video_id', 'frame_ts'])
+#data = data[0:500000]
+
+data['frame_ts'] = pd.to_datetime(data['frame_ts'], unit='ms')
+
+grouped_data = data.groupby('video_id')
+
+mins = 5
+
+for video_id, group_data in grouped_data:
+
+    group_data['min_group'] = group_data['frame_ts'].dt.floor(f'{mins}min')
+
+    # Plot histogram for the current video
+    plt.figure(figsize=(8, 6))
+    sns.histplot(data=group_data, x='min_group', bins=15, kde=True)
+    plt.xlabel(f'Frame TS ({mins}-minute intervals)')
+    plt.ylabel('Frequency')
+    plt.title(f'{video_id}')
+
+    plt.savefig(f'images/{video_id}_frame_distribution_plot.png')
+    plt.close()
 
 
 
