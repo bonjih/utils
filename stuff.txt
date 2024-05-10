@@ -1,3 +1,105 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+from adjustText import adjust_text
+
+data = pd.read_csv('df2.csv', usecols=['video_id', 'frame_ts'])
+# Convert epoch timestamp to datetime
+data['frame_ts'] = pd.to_datetime(data['frame_ts'], unit='ms')
+
+# Count the number of frames associated with each video ID
+frame_counts = data.groupby('video_id').size()
+data['frame_count'] = data['video_id'].map(frame_counts)
+
+# Use pandas index to assign numeric IDs to each unique video ID
+data['video_id_number'] = data.groupby('video_id').ngroup()
+
+# Group data into 24-hour intervals
+data['day'] = data['frame_ts'].dt.floor('D')
+
+# Iterate over each day
+for day, day_data in data.groupby('day'):
+    # Check if the day has data within the 24-hour period
+    start_period = day
+    end_period = start_period + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+    if not (start_period <= day_data['frame_ts'].max() <= end_period):
+        continue
+
+    # Group data into specified minute intervals for the current day
+    mins = 10
+    day_data['min_group'] = day_data['frame_ts'].dt.floor(f'{mins}min')
+
+    # Get start and end timestamps for the distribution period
+    start_period = start_period.strftime('%Y-%m-%d %H:%M:%S')
+    end_period = end_period.strftime('%Y-%m-%d %H:%M:%S')
+
+    # Plot
+    plt.figure(figsize=(15, 8))
+    ax = sns.histplot(data=day_data, x='min_group', hue='video_id_number', bins='auto', kde=False, palette='tab10')
+    plt.xlabel(f'Frame Timestamp ({mins}-minute intervals)')
+    plt.ylabel('Frequency')
+    plt.title(f'Distribution of frame timestamps for each Video ID\nPeriod: {start_period} to {end_period}')
+
+    # Set x-axis limits to cover the entire 24-hour period
+    plt.xlim(day, day + pd.Timedelta(days=1))
+
+    # Annotate bars with frame count
+    texts = []
+
+    for p in ax.patches:
+        height = p.get_height()
+        if height > 0:
+            text = ax.annotate(f'{int(height)}', (p.get_x() + p.get_width() / 2., height), ha='center', va='bottom',
+                               xytext=(0, 5), textcoords='offset points')
+            texts.append(text)
+
+    # Adjust the positions of the annotations to avoid overlaps
+    #adjust_text(texts, expand_text=(1.01, 1.03))
+
+    # Create custom legend with correct colors
+    legend_handles = [Patch(color=color) for color in
+                      sns.color_palette('tab10', n_colors=len(day_data['video_id_number'].unique()))]
+    legend_labels = list(day_data['video_id_number'].unique())
+    plt.legend(title='Video ID', labels=[str(label) for label in legend_labels], handles=legend_handles,
+               loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=15)
+
+    plt.tight_layout()
+    filename = f'frame_distribution_plot_{day.strftime("%Y-%m-%d")}.png'
+    plt.savefig(filename)
+    #plt.show()
+    plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
