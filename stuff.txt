@@ -4,10 +4,32 @@ import boto3
 # Assuming you have already initialized boto3 and dy_table_name
 
 def fetch_items(video):
-    response = table.query(
-        KeyConditionExpression=Key('video_id').eq(video)
-    )
-    return response['Items']
+    items = []
+    last_evaluated_key = None
+    
+    while True:
+        # Query DynamoDB with LastEvaluatedKey if available
+        if last_evaluated_key:
+            response = table.query(
+                KeyConditionExpression=Key('video_id').eq(video),
+                ExclusiveStartKey=last_evaluated_key
+            )
+        else:
+            response = table.query(
+                KeyConditionExpression=Key('video_id').eq(video)
+            )
+        
+        # Extend items with fetched items
+        items.extend(response['Items'])
+        
+        # Update LastEvaluatedKey if there are more pages
+        last_evaluated_key = response.get('LastEvaluatedKey')
+        
+        # Break the loop if there are no more pages
+        if not last_evaluated_key:
+            break
+            
+    return items
 
 # Number of threads to use for parallel processing
 num_threads = 10  # Adjust this as per your requirements
@@ -32,6 +54,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
             print(f"Exception occurred: {e}")
 
 # Now 'items' list contains items fetched in parallel
+
 
 
 
