@@ -1,3 +1,32 @@
+table = dynamodb.Table(dy_table_name)
+
+items = []
+
+for video in matching_ids_list:
+    response = table.query(
+        KeyConditionExpression=Key('video_id').eq(video),
+    )
+
+    items.extend(response['Items'])
+
+    # Include this for large queries
+    while 'LastEvaluatedKey' in response:
+        response = table.query(
+            KeyConditionExpression=Key('video_id').eq(video),
+            ExclusiveStartKey=response['LastEvaluatedKey']
+        )
+
+        items.extend(response['Items'])
+
+
+
+
+
+
+
+
+
+
 data['min_group'] = data['frame_ts'].dt.hour * 60 + data['frame_ts'].dt.minute
 frame_counts = data.groupby('min_group').size().reset_index(name='frame_count')
 
