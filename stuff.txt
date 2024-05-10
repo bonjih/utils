@@ -47,7 +47,44 @@ def get_matching_frames(id_list):
 prefix_list = get_matching_frames(list(matching_ids_list))
 
 
+import concurrent.futures
+import boto3
+from urllib.parse import urlparse
 
+# Initialize S3 client
+s3 = boto3.client('s3')
+
+def get_matching_frames(id_list):
+    prefix_frames = []
+
+    def fetch_prefix_frames(uri):
+        parsed_uri = urlparse(uri)
+        bucket_name = parsed_uri.netloc
+        prefix = parsed_uri.path.lstrip('/')
+
+        paginator = s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+
+        object_keys = []
+        for page in pages:
+            object_keys.extend([obj['Key'] for obj in page.get('Contents', [])])
+
+        return object_keys
+
+    # Use ThreadPoolExecutor to run fetch_prefix_frames asynchronously
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_uri = {executor.submit(fetch_prefix_frames, f's3://{bucket_dms}/{frames_dms}{i}/'): i for i in id_list}
+        for future in concurrent.futures.as_completed(future_to_uri):
+            uri = future_to_uri[future]
+            try:
+                object_keys = future.result()
+                prefix_frames.extend(object_keys)
+            except Exception as exc:
+                print(f'Error fetching frames for {uri}: {exc}')
+
+    return prefix_frames
+
+prefix_list = get_matching_frames(matching_ids_list)
 
 
 
