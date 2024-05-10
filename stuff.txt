@@ -1,3 +1,48 @@
+def get_matching_frames(id_list):
+    # for some reason, need to construct uri, unpick and parse
+    prefix_frames = []
+    
+    for i in id_list:
+        uri = f's3://{bucket_dms}/{frames_dms}{i}/'
+        parsed_uri = urlparse(uri)
+
+        # extract bucket name and object key prefix from the parsed URI
+        bucket_name = parsed_uri.netloc
+        prefix = parsed_uri.path.lstrip('/')
+        
+        # paginate through the results to retrieve all objects
+        paginator = s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+
+        for page in pages:
+            object_keys = [obj['Key'] for obj in page.get('Contents', [])]
+            prefix_frames.extend(object_keys)
+
+    return prefix_frames
+
+prefix_list = get_matching_frames(list(matching_ids_list))
+print(len(prefix_list))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
