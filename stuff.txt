@@ -62,7 +62,50 @@ plt.savefig('frame_distribution_plot2.png')
 
 
 
+ef plot_frame_distribution_with_gaps(data, step_size=30):
+    # Group data into 10-minute intervals for the entire dataset
+    data['min_group'] = data['frame_ts'].dt.hour * 60 + data['frame_ts'].dt.minute
+    frame_counts = data.groupby('min_group').size().reset_index(name='frame_count')
 
+    # Create a range of 10-minute intervals covering the entire 24-hour period
+    min_range = range(0, 24 * 60, step_size)
+
+    # Plot the distribution
+    plt.figure(figsize=(15, 8))
+    sns.histplot(data=frame_counts, x='min_group', bins=min_range, kde=True)
+    plt.xlabel('Frame Timestamp (Hour:Minute)')
+    plt.ylabel('Frequency')
+    plt.title('Distribution of Frame Timestamps for Each 24-Hour Period')
+    plt.xticks(min_range, [f'{hour:02d}:{minute:02d}' for hour in range(24) for minute in range(0, 60, step_size)], rotation=45)
+
+    # Find the gaps in data
+    gap_indices = np.where(~frame_counts['min_group'].isin(min_range))[0]
+    if len(gap_indices) > 0:
+        for gap_index in gap_indices:
+            plt.axvline(x=frame_counts.loc[gap_index, 'min_group'], color='red', linestyle='--', alpha=0.5)
+
+    plt.tight_layout()
+    plt.savefig('frame_distribution_plot_with_gaps.png')
+    #plt.show()
+
+# Example usage
+data = pd.read_csv('df2.csv', usecols=['frame_ts'])
+data['frame_ts'] = pd.to_datetime(data['frame_ts'], unit='ms')
+plot_frame_distribution_with_gaps(data)
+
+
+def find_missing_data(frame_counts):
+    missing_data = []
+    for i in range(0, 24 * 60, 30):
+        if i not in frame_counts['min_group'].values:
+            missing_data.append(f'{i // 60:02d}:{i % 60:02d}')
+        elif frame_counts.loc[frame_counts['min_group'] == i, 'frame_count'].iloc[0] < 15:
+            missing_data.append(f'{i // 60:02d}:{i % 60:02d}')
+    return missing_data
+
+missing_data = find_missing_data(frame_counts)
+print("Times with no data or fewer than 15 frames:")
+print(missing_data)
 
 
 
