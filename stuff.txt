@@ -1,23 +1,37 @@
-table = dynamodb.Table(dy_table_name)
+import concurrent.futures
+import boto3
+
+# Assuming you have already initialized boto3 and dy_table_name
+
+def fetch_items(video):
+    response = table.query(
+        KeyConditionExpression=Key('video_id').eq(video)
+    )
+    return response['Items']
+
+# Number of threads to use for parallel processing
+num_threads = 10  # Adjust this as per your requirements
+
+# List of videos to fetch items for
+videos_to_fetch = matching_ids_list
 
 items = []
 
-for video in matching_ids_list:
-    response = table.query(
-        KeyConditionExpression=Key('video_id').eq(video),
-    )
+# Create a ThreadPoolExecutor
+with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+    # Submit fetch_items function for each video
+    futures = [executor.submit(fetch_items, video) for video in videos_to_fetch]
 
-    items.extend(response['Items'])
+    # Iterate through completed futures
+    for future in concurrent.futures.as_completed(futures):
+        try:
+            # Get the result of the future
+            items.extend(future.result())
+        except Exception as e:
+            # Handle any exceptions raised during execution
+            print(f"Exception occurred: {e}")
 
-    # Include this for large queries
-    while 'LastEvaluatedKey' in response:
-        response = table.query(
-            KeyConditionExpression=Key('video_id').eq(video),
-            ExclusiveStartKey=response['LastEvaluatedKey']
-        )
-
-        items.extend(response['Items'])
-
+# Now 'items' list contains items fetched in parallel
 
 
 
