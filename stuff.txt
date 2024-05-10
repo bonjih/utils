@@ -1,6 +1,95 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+data = pd.read_csv('df2.csv', usecols=['frame_ts'])
+data['frame_ts'] = pd.to_datetime(data['frame_ts'], unit='ms')
+
+grouped_data = data.groupby(data['frame_ts'].dt.floor('D'))
+
+fig, ax = plt.subplots(figsize=(15, 8))
+
+# Iterate over each day and plot the distribution
+for day, day_data in grouped_data:
+    # Group data into 10-minute intervals within the current day and count the number of frames
+    day_data['min_group'] = day_data['frame_ts'].dt.hour * 3600 + day_data['frame_ts'].dt.minute * 60
+    frame_counts = day_data.groupby('min_group').size().reset_index(name='frame_count')
+
+    # Create a range of 10-minute intervals covering the a 24-hour period
+    min_range = range(0, 24 * 60 * 60, 10 * 60)
+    sns.histplot(data=frame_counts, x='min_group', bins=min_range, kde=True, ax=ax, alpha=0.5)
+
+
+ax.set_xlabel('Frame Timestamp (Hour:Minute)')
+ax.set_ylabel('Frequency')
+ax.set_title('Distribution of Frame Timestamps for Each 24-Hour Period')
+ax.set_xticklabels([pd.to_datetime(sec, unit='s').strftime('%H:%M') for sec in ax.get_xticks()])
+
+plt.tight_layout()
+plt.savefig('frame_distribution_plot1.png')
+#plt.show()
+
+
+
+
+data = pd.read_csv('df2.csv', usecols=['frame_ts'])
+
+# Convert epoch timestamp to datetime
+data['frame_ts'] = pd.to_datetime(data['frame_ts'], unit='ms')
+
+# Group data into 10-minute intervals for the entire dataset
+data['min_group'] = data['frame_ts'].dt.hour * 60 + data['frame_ts'].dt.minute
+frame_counts = data.groupby('min_group').size().reset_index(name='frame_count')
+
+# Create a range of 10-minute intervals covering the entire 24-hour period
+min_range = range(0, 24 * 60, 30)  # Adjust the step size to 30 minutes
+
+# Plot the distribution
+plt.figure(figsize=(15, 8))
+sns.histplot(data=frame_counts, x='min_group', bins=min_range, kde=True)
+plt.xlabel('Frame Timestamp (Hour:Minute)')
+plt.ylabel('Frequency')
+plt.title('Distribution of Frame Timestamps for Each 24-Hour Period')
+plt.xticks(min_range, [f'{hour:02d}:{minute:02d}' for hour in range(24) for minute in range(0, 60, 30)], rotation=45)
+plt.tight_layout()
+plt.savefig('frame_distribution_plot2.png')
+#plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from adjustText import adjust_text
 
