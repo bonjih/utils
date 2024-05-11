@@ -5,35 +5,19 @@ from office365.sharepoint.files.file import File
 from io import BytesIO
 import requests
 
-user = ''
-passwrd = ' '
-
-sharepoint_file = '/sites/TechIROCCV/Shared%20Documents/General/Bridging/Plots/24hr_frame_distro_with_bridged_events.png'
-sharepoint_url = 'https://billiton.com/sites/TechIROCCV'
-
-def get_sharepoint_context():
+# Upload the file to SharePoint
+def upload_to_sharepoint(local_file_path):
     user_credentials = UserCredential(user, passwrd)
     ctx = ClientContext(sharepoint_url).with_credentials(user_credentials)
-    return ctx
+    with open(local_file_path, 'rb') as file:
+        content = BytesIO(file.read())
+    response = File.save_binary(ctx, f"{sharepoint_folder}{local_file_path.split('/')[-1]}", content)
+    if response.status_code == 200:
+        print("File uploaded successfully to SharePoint.")
+    else:
+        print(f"Error uploading file to SharePoint: {response.text}")
 
-def download_file(url, local_filename):
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        with open(local_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-
-def get_sharepoint_file():
-    ctx = get_sharepoint_context()
-    response = File.open_binary(ctx, sharepoint_file)
-    
-    # Save the file
-    local_filename = '24hr_frame_distro_with_bridged_events.png'
-    with open(local_filename, 'wb') as f:
-        f.write(response.content)
-    return local_filename
-
-file_path = get_sharepoint_file()
+upload_to_sharepoint(local_file_path)
 
 print(f'File downloaded and saved to: {file_path}')
 
