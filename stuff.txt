@@ -1,3 +1,102 @@
+import datetime
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import re
+
+df = pd.read_excel('bridging_video_list_20240424.xlsx')
+df = df[(df['Bridging_in_video'] == True) & (df['split'] == 'val')]
+
+test_columns = ['bridge_start', 'model_test_1_2024-05-12-10-30-00',
+                'model_test_2_2024-05-13-11-30-00']  # Add more columns as needed
+
+
+# Define a function to extract datetime from video_id
+def extract_datetime(video_id):
+    match = re.search(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}', video_id)
+    if match:
+        return match.group(0)
+    match = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', video_id)
+    if match:
+        return match.group(0).replace('_', '-')
+    return None
+
+
+# Splits time to convert to object for ime addition
+def convert_to_timedelta(time_str):
+    try:
+        parts = time_str.split(':')
+        hours = int(parts[0])
+        minutes = int(parts[1])
+        seconds = int(parts[2])
+        return pd.Timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    except Exception as e:
+        # print(f"Error converting {time_str} to timedelta: {e}")
+        return pd.NaT
+
+
+df['datetime'] = df['video_id'].apply(extract_datetime)
+df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d-%H-%M-%S')
+df = df.sort_values(by='datetime')
+
+test_name = None
+
+plt.figure(figsize=(15, 8))
+
+for i, test_col in enumerate(test_columns, start=1):
+    df[f'bridge_event_time_{i}'] = df[test_col].astype(str).apply(convert_to_timedelta)
+    df[f'bridge_event_time_{i}'] = df['datetime'] + df[f'bridge_event_time_{i}']
+
+    if test_col == 'bridge_start':
+        test_name = 'Baseline'
+    else:
+        test_name = test_col
+
+    plt.plot(df[f'bridge_event_time_{i}'], [i] * len(df), marker='o', linestyle='-', label=f'{test_name}')
+
+plt.xlabel('Timestamp')
+plt.ylabel('Video ID Index')
+plt.title('Bridge Events')
+plt.grid(True)
+
+plt.xticks(rotation=0)
+plt.ylim(0, 5)
+plt.tight_layout()
+plt.legend()
+
+
+# plt.show()
+
+
+def calculate_time_delta(df, test_columns):
+    for k, test_col in enumerate(test_columns, start=1):
+        df[f'bridge_event_time_{k}'] = df[test_col].astype(str).apply(convert_to_timedelta)
+        df[f'bridge_event_time_{k}'] = df['datetime'] + df[f'bridge_event_time_{k}']
+
+        if test_col != 'bridge_start':
+            delta_col_name = f'{test_col}'
+            df[test_col] = pd.to_datetime(df[test_col], format='%H:%M:%S')
+            df[delta_col_name] = df[test_col] - pd.to_datetime(df['bridge_start'], format='%H:%M:%S')
+
+    model_test_columns = [col for col in df.columns if 'model_test' in col]
+
+    for column in model_test_columns:
+        df[column] = df[column].astype(str).map(lambda x: x[7:] if x != '0 days' else '0')
+
+    return df
+
+# Example usage
+df_result = calculate_time_delta(df, test_columns)
+print(df[test_columns].to_string())
+
+
+
+
+
+
+
+
+
 import pandas as pd
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
@@ -21,20 +120,7 @@ upload_to_sharepoint(local_file_path)
 
 print(f'File downloaded and saved to: {file_path}')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
 
 
 
