@@ -1,3 +1,18 @@
+buffer = BytesIO()
+plt.savefig(buffer, format='png')
+buffer.seek(0)
+
+# Upload the plot to SharePoint
+upload_url = 'YOUR_SHAREPOINT_UPLOAD_URL_HERE'
+files = {'file': ('frame_distribution_plot.png', buffer, 'image/png')}
+response = requests.post(upload_url, files=files)
+
+if response.status_code == 200:
+    print("Plot uploaded successfully to SharePoint.")
+else:
+    print("Error uploading plot to SharePoint.")
+
+
 import datetime
 
 import pandas as pd
