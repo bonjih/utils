@@ -1,3 +1,108 @@
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
+
+
+def plot_predicted_vs_observed(df, test_column_prefix='model_test_'):
+    observed = df['bridge_start'].astype('timedelta64[s]').values / np.timedelta64(1, 's')  # Convert to seconds
+    predicted_columns = [col for col in df.columns if col.startswith(test_column_prefix)]
+
+    rmse_values = []
+
+    plt.figure(figsize=(10, 6))
+
+    for col in predicted_columns:
+        predicted = df[col].apply(lambda x: pd.Timedelta(x).total_seconds()).values
+
+        if not np.all(predicted == 0):  # Check if all values are zero
+            predicted = np.where(predicted > 0, predicted, np.nan)  # Convert non-positive predictions to NaN
+            not_nan_indices = ~np.isnan(predicted)
+            predicted = predicted[not_nan_indices]
+            observed_subset = observed[not_nan_indices]
+
+            lr = LinearRegression()
+            lr.fit(observed_subset.reshape(-1, 1), predicted)
+
+            rmse = np.sqrt(mean_squared_error(observed_subset, lr.predict(observed_subset.reshape(-1, 1))))
+            rmse_values.append(rmse)
+
+            plt.scatter(observed_subset, predicted, label=col)
+            plt.plot(observed_subset, lr.predict(observed_subset.reshape(-1, 1)), label=f'Regression Line ({col})')
+
+    plt.scatter(observed, observed, label='Observed', color='red')
+
+    # Plotting settings
+    plt.xlabel('Observed (bridge_start)')
+    plt.ylabel('Predicted')
+    plt.legend()
+    plt.title('Observed vs Predicted')
+    plt.tight_layout()
+    plt.show()
+
+    return rmse_values
+
+
+def calculate_rmse_and_variance(df, test_column_prefix='model_test_'):
+    predicted_columns = [col for col in df.columns if col.startswith(test_column_prefix)]
+    rmse_values = []
+
+    # Loop through each observation
+    for index, row in df.iterrows():
+        predicted_values = []
+
+        # Calculate RMSE for each predicted column
+        for col in predicted_columns:
+            predicted = pd.Timedelta(row[col]).total_seconds()
+            if predicted > 0:  # Check if the prediction is positive
+                predicted_values.append(predicted)
+
+        if predicted_values:
+            observed_time = pd.Timedelta(row['bridge_start']).total_seconds()
+
+            # RMSE for this observation
+            rmse = np.sqrt(np.mean([(observed_time - predicted_time) ** 2 for predicted_time in predicted_values]))
+            rmse_values.append(rmse)
+
+    return rmse_values
+
+
+df = pd.read_csv('bridge_predicted_observed.csv')
+rmse_all = plot_predicted_vs_observed(df)
+print(rmse_all)
+rmses = calculate_rmse_and_variance(df)
+for i, (rmse) in enumerate(rmses, start=1):
+    print(f"Observation {i}: RMSE = {rmse}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 buffer = BytesIO()
 plt.savefig(buffer, format='png')
 buffer.seek(0)
