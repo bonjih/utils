@@ -1,3 +1,11 @@
+#!/bin/bash
+for filename in *.json; do
+    echo "Video $filename starting"
+    aws lambda invoke --function-name "dev-IroccvDMSStack-VideoLabelsUpsertFunction3E924D-AK6ainIn36uI" --invocation-type Event --payload file:"//$filename" --cli-binary-format raw-in-base64-out /dev/stdout
+    echo "Video $filename complete"
+done
+
+
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
