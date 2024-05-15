@@ -1,3 +1,107 @@
+import json
+import subprocess
+
+import pandas as pd
+import re
+
+df = pd.read_excel('bridging_video_list_20240424.xlsx')
+df = df[['video_id', 'camera_name', 'Bridging_in_video', 'Bridged_mouth', 'bridge_start',
+         'bridge_end', 'dirty_lens', 'split']]
+
+
+# Define a function to extract datetime from video_id
+def extract_datetime(video_id):
+    match = re.search(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}', video_id)
+    if match:
+        return match.group(0)
+    match = re.search(r'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}', video_id)
+    if match:
+        return match.group(0).replace('_', '-')
+    return None
+
+
+# Splits time to convert to object for ime addition
+def convert_to_timedelta(time_str):
+    try:
+        parts = time_str.split(':')
+        hours = int(parts[0])
+        minutes = int(parts[1])
+        seconds = int(parts[2])
+        return pd.Timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    except Exception as e:
+        return pd.NaT
+
+
+df['datetime'] = df['video_id'].apply(extract_datetime)
+df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d-%H-%M-%S')
+df = df.sort_values(by='datetime')
+
+
+def process_row(data):
+    data = data[data['bridge_start'].notnull()]
+    df = data.copy()
+    df['ts_start'] = df['datetime'] + df['bridge_start'].astype(str).apply(convert_to_timedelta)
+    df['ts_finish'] = df['datetime'] + df['bridge_end'].astype(str).apply(convert_to_timedelta)
+    df = df[df['ts_start'].notnull()]
+
+    df['ts_start'] = df['ts_start'].dt.strftime('%Y-%m-%dT%H:%M:%S') + '+08:00'
+    df['ts_finish'] = df['ts_finish'].dt.strftime('%Y-%m-%dT%H:%M:%S') + '+08:00'
+
+    return df[['camera_name', 'datetime', 'ts_start', 'ts_finish', 'Bridging_in_video']]
+
+
+def generate_json(data):
+    json_dic = []
+
+    for index, row in data.iterrows():
+        jsons = {
+            'camera_name': row['camera_name'],
+            'ts_start': row['ts_start'],
+            'ts_finish': row['ts_finish'],
+            'labels': True if row['Bridging_in_video'] else False
+        }
+
+        json_dic.append(jsons)
+
+    return json_dic
+
+
+processed_data = process_row(df)
+json_list = generate_json(processed_data)
+
+for json_data in json_list:
+    json_string = json.dumps(json_data)
+
+    subprocess.run(['aws', 'lambda', 'invoke', '--function-name',
+                    'dev-IroccvDMSStack-VideoLabelsUpsertFunction3E924D-AK6ainIn36uI', '--invocation-type',
+                    'Event', '--payload', f'file:///dev/stdin', '--cli-binary-format', 'raw-in-base64-out'],
+                   input=json_string.encode('utf-8'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #!/bin/bash
 for filename in *.json; do
     echo "Video $filename starting"
