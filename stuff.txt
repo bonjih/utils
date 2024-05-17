@@ -1,3 +1,19 @@
+for index, row in tqdm(df.iterrows()):
+    source_file = row['file_url']
+    destination_file = row['gtp_url']
+    
+    # Extract the bucket and key from the S3 URLs
+    source_bucket, source_key = source_file.replace('s3://', '').split('/', 1)
+    destination_bucket, destination_key = destination_file.replace('s3://', '').split('/', 1)
+    
+    # Copy the file from source to destination
+    s3_client.copy_object(
+        CopySource={'Bucket': source_bucket, 'Key': source_key},
+        Bucket=destination_bucket,
+        Key=destination_key
+    )
+
+
 import json
 import subprocess
 
