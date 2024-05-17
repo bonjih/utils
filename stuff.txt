@@ -1,9 +1,6 @@
-import concurrent.futures
-from tqdm import tqdm
-
 def copy_object(row):
-    source_file = row['file_url']
-    destination_file = row['gtp_url']
+    source_file = row.file_url
+    destination_file = row.gtp_url
     
     # Extract the bucket and key from the S3 URLs
     source_bucket, source_key = source_file.replace('s3://', '').split('/', 1)
@@ -22,7 +19,9 @@ max_threads = 10  # You can adjust this number based on your system's capabiliti
 # Create a ThreadPoolExecutor
 with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
     # Map the copy_object function to each row in the DataFrame
-    futures = list(tqdm(executor.map(copy_object, df.itertuples(index=False), total=len(df))))
+    futures = []
+    for row in df.itertuples(index=False):
+        futures.append(executor.submit(copy_object, row))
 
 # Wait for all threads to complete
 concurrent.futures.wait(futures)
