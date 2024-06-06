@@ -62,6 +62,31 @@ def plot_camera_usage_distribution(data):
     plt.savefig('camera_distribution_stacked_per_hour.png')
     plt.show()
 
+def plot_dataset_split_counts_and_percentages(data):
+    dataset_split_counts = data.groupby(['dataset_name', 'split_name']).size().reset_index(name='count')
+    total_counts = dataset_split_counts.groupby('dataset_name')['count'].transform('sum')
+    dataset_split_counts['percentage'] = (dataset_split_counts['count'] / total_counts) * 100
+
+    plt.figure(figsize=(15, 8))
+    sns.barplot(data=dataset_split_counts, x='dataset_name', y='count', hue='split_name', dodge=True, palette='tab20')
+
+    # Annotate the total frame counts and percentages on the bars
+    for p in plt.gca().patches:
+        height = p.get_height()
+        width = p.get_width()
+        x = p.get_x() + width / 2
+        percentage = f'{(height / total_counts.iloc[0]) * 100:.1f}%'
+        plt.gca().annotate(f'{int(height)}\n{percentage}', (x, height), ha='center', va='bottom', fontsize=10, color='black')
+
+    plt.xlabel('Dataset Name')
+    plt.ylabel('Frame Count')
+    plt.title('Distribution of Frame Timestamps per Split Name for Each Dataset')
+    plt.xticks(rotation=45)
+    plt.legend(title='Split Name', bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    plt.savefig('dataset_split_count_and_percentage_distribution.png')
+    plt.show()
+
 # Call the functions
 plot_hourly_distribution_per_day(data)
 plot_overall_hourly_distribution(data)
